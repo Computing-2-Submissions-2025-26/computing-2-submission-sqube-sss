@@ -268,6 +268,37 @@ describe("isSquareRevealed", function () {
     });
 });
 
+describe("generateSequence", function () {
+    it("returns an array of the requested length", function () {
+        assert.strictEqual(game.generateSequence(3).length, 3);
+        assert.strictEqual(game.generateSequence(5).length, 5);
+    });
+
+    it("never produces two of the same gesture in a row", function () {
+        var iterations = 200;
+        var i;
+        for (i = 0; i < iterations; i += 1) {
+            var seq = game.generateSequence(5);
+            var j;
+            for (j = 1; j < seq.length; j += 1) {
+                assert.notStrictEqual(
+                    seq[j],
+                    seq[j - 1],
+                    "back-to-back repeat at index " + j + " in " + JSON.stringify(seq)
+                );
+            }
+        }
+    });
+
+    it("only uses gestures from the fixed pool", function () {
+        var pool = ["fist", "palm", "thumbsUp", "peace", "point"];
+        var seq = game.generateSequence(5);
+        seq.forEach(function (g) {
+            assert.ok(pool.indexOf(g) !== -1, "unexpected gesture: " + g);
+        });
+    });
+});
+
 describe("getSpecialEffect", function () {
     it("returns the effect at a known special position", function () {
         var state = {specialSquares: {5: 2, 3: -2}, revealedSquares: []};

@@ -65,6 +65,33 @@
     </div>
   </div>
 
+  <div id="winner-overlay" class="overlay" aria-modal="true" role="dialog" aria-labelledby="winner-name" aria-hidden="true">
+    <div class="winner-stage">
+      <div id="winner-suspense" class="winner-suspense">AND THE WINNER IS...</div>
+      <div id="winner-card" class="winner-card">
+        <div class="winner-trophy">🏆</div>
+        <h2 id="winner-name" class="winner-name">Player 1</h2>
+        <div id="winner-stats" class="winner-stats">
+          <div class="stats-grid">
+            <div class="stat-row">
+              <span class="stat-label">Turns played</span>
+              <span class="stat-value" id="stat-turns-1">0</span>
+              <span class="stat-vs">vs</span>
+              <span class="stat-value" id="stat-turns-2">0</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Sequences nailed</span>
+              <span class="stat-value" id="stat-nailed-1">0</span>
+              <span class="stat-vs">vs</span>
+              <span class="stat-value" id="stat-nailed-2">0</span>
+            </div>
+          </div>
+        </div>
+        <button id="play-again-btn" class="big-action-btn">PLAY AGAIN</button>
+      </div>
+    </div>
+  </div>
+
   <div id="theme-picker">
     <p class="theme-picker-heading">Pick your theme</p>
     <div>

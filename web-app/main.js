@@ -11,8 +11,20 @@ const GESTURE_TO_EMOJI = {
     "peace": "✌️",
     "point": "👆"
 };
-const MEMORISE_MS_PER_GESTURE = 1000;
-const PERFORM_MS_PER_GESTURE = 2000;
+const MEMORISE_TIMES = {
+    1: 1000,
+    2: 2400,
+    3: 4200,
+    4: 6800,
+    5: 10000
+};
+const PERFORM_TIMES = {
+    1: 2000,
+    2: 4000,
+    3: 6000,
+    4: 8000,
+    5: 10000
+};
 const SQUARE_SIZE = 70;
 const SQUARE_GAP = 4;
 const TRACK_STEP = SQUARE_SIZE + SQUARE_GAP;
@@ -27,6 +39,10 @@ let performTimer = null;
 let countdownInterval = null;
 let playerNames = {1: "Player 1", 2: "Player 2"};
 let gameStarted = false;
+let gameStats = {
+    1: {turns: 0, sequencesNailed: 0},
+    2: {turns: 0, sequencesNailed: 0}
+};
 
 // --- SECTION 3: Functions ---
 
@@ -118,7 +134,8 @@ function startTurn(difficulty) {
 
 // Display the sequence to memorise, then trigger the perform phase
 function showSequence() {
-    startCountdown(MEMORISE_MS_PER_GESTURE * targetSequence.length, "MEMORISE");
+    const memoriseTime = MEMORISE_TIMES[currentDifficulty];
+    startCountdown(memoriseTime, "MEMORISE");
     const display = document.getElementById("sequence-display");
     display.textContent = targetSequence.map(function (g) {
         return GESTURE_TO_EMOJI[g];
@@ -126,17 +143,18 @@ function showSequence() {
     setTimeout(function () {
         display.textContent = "";
         beginPerformPhase();
-    }, MEMORISE_MS_PER_GESTURE * targetSequence.length);
+    }, memoriseTime);
 }
 
 // Show "Go!" and start the timer for the player's performance window
 function beginPerformPhase() {
-    startCountdown(PERFORM_MS_PER_GESTURE * targetSequence.length, "GO");
+    const performTime = PERFORM_TIMES[currentDifficulty];
+    startCountdown(performTime, "GO");
     document.getElementById("message").textContent = "Go!";
     phase = "performing";
     performTimer = setTimeout(function () {
         judgeAttempt();
-    }, PERFORM_MS_PER_GESTURE * targetSequence.length);
+    }, performTime);
 }
 
 // Register a gesture keypress during the perform phase
@@ -158,7 +176,12 @@ function handleKeypress(key) {
 // Check the attempt, move the chip, and check for a winner
 function judgeAttempt() {
     stopCountdown();
+    const playerWhoPlayed = gameState.currentPlayer;
+    gameStats[playerWhoPlayed].turns += 1;
     const success = game.checkSequence(targetSequence, playerAttempt);
+    if (success) {
+        gameStats[playerWhoPlayed].sequencesNailed += 1;
+    }
     const spaces = game.calculateMove(currentDifficulty, success);
     const messageEl = document.getElementById("message");
     const finaliseJudge = function () {
@@ -169,6 +192,9 @@ function judgeAttempt() {
             render();
             messageEl.className = "";
             messageEl.textContent = playerNames[winner] + " wins!";
+            setTimeout(function () {
+                showWinnerOverlay(winner);
+            }, 800);
         } else {
             endTurn(success);
         }
@@ -262,6 +288,89 @@ function closeRules() {
     document.getElementById("rules-overlay").setAttribute("aria-hidden", "true");
 }
 
+// Orchestrate the dramatic winner reveal sequence
+function showWinnerOverlay(winner) {
+    const overlay = document.getElementById("winner-overlay");
+    const card = document.getElementById("winner-card");
+    const stats = document.getElementById("winner-stats");
+    const button = document.getElementById("play-again-btn");
+    const nameEl = document.getElementById("winner-name");
+
+    // Reset all elements
+    card.classList.remove("show");
+    stats.classList.remove("show");
+    button.classList.remove("show");
+
+    // Populate winner name and stats
+    nameEl.textContent = playerNames[winner];
+    document.getElementById("stat-turns-1").textContent = gameStats[1].turns;
+    document.getElementById("stat-turns-2").textContent = gameStats[2].turns;
+    document.getElementById("stat-nailed-1").textContent = gameStats[1].sequencesNailed;
+    document.getElementById("stat-nailed-2").textContent = gameStats[2].sequencesNailed;
+
+    // Show overlay with suspense text immediately
+    overlay.classList.add("active");
+    overlay.setAttribute("aria-hidden", "false");
+
+    // After suspense, reveal card
+    setTimeout(function () {
+        card.classList.add("show");
+    }, 1500);
+
+    // After card, reveal stats
+    setTimeout(function () {
+        stats.classList.add("show");
+    }, 3400);
+
+    // After stats, reveal play again button
+    setTimeout(function () {
+        button.classList.add("show");
+    }, 4000);
+}
+
+// Reset all game state and visuals for a new round (keeping player names)
+function resetGame() {
+    // Hide winner overlay
+    document.getElementById("winner-overlay").classList.remove("active");
+    document.getElementById("winner-overlay").setAttribute("aria-hidden", "true");
+
+    // Fresh game state (new random special squares, positions reset)
+    gameState = game.createGame();
+
+    // Reset UI state
+    currentDifficulty = null;
+    targetSequence = [];
+    playerAttempt = [];
+    phase = "waitingForDifficulty";
+    performTimer = null;
+
+    // Reset stats
+    gameStats = {
+        1: {turns: 0, sequencesNailed: 0},
+        2: {turns: 0, sequencesNailed: 0}
+    };
+
+    // Clear all dynamic UI elements
+    document.getElementById("message").textContent = "";
+    document.getElementById("message").className = "";
+    document.getElementById("sequence-display").textContent = "";
+    document.getElementById("timer-display").textContent = "";
+    document.getElementById("timer-display").className = "";
+
+    // Re-paint squares (clears revealed states and recolours mystery squares for new positions)
+    updateSquareClasses();
+
+    // Mark game as not yet started so the countdown gates difficulty buttons
+    gameStarted = false;
+
+    // Render the initial board state, then run countdown
+    render();
+    runCountdown(function () {
+        gameStarted = true;
+        render();
+    });
+}
+
 // --- SECTION 4: Event listeners ---
 
 // Difficulty buttons — only respond when waiting between turns
@@ -297,6 +406,8 @@ document.querySelectorAll(".theme-btn").forEach(function (button) {
         document.getElementById("theme-label").textContent = "Theme: " + THEME_NAMES[theme];
     });
 });
+
+document.getElementById("play-again-btn").addEventListener("click", resetGame);
 
 document.getElementById("start-game-btn").addEventListener("click", startGame);
 document.getElementById("open-rules-btn").addEventListener("click", openRules);

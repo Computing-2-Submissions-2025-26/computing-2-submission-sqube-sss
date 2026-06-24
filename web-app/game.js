@@ -73,9 +73,21 @@ function createGame() {
  */
 function generateSequence(difficulty) {
     "use strict";
-    return R.range(0, difficulty).map(function () {
-        return GESTURES[Math.floor(Math.random() * GESTURES.length)];
-    });
+    var sequence, lastGesture, available, i;
+    sequence = [];
+    lastGesture = null;
+    i = 0;
+    while (i < difficulty) {
+        available = (lastGesture === null)
+            ? GESTURES
+            : GESTURES.filter(function (g) {
+                return g !== lastGesture;
+            });
+        lastGesture = available[Math.floor(Math.random() * available.length)];
+        sequence.push(lastGesture);
+        i += 1;
+    }
+    return sequence;
 }
 
 /**
