@@ -1,5 +1,5 @@
-/*jslint node: true */
-var R = (typeof require !== "undefined") ? require("ramda") : window.R;
+/*jslint node: true, browser: true, devel: true */
+var R = (typeof require !== "undefined") ? require("ramda") : window.R; // JSLint warns on typeof, but direct `require !== undefined` throws ReferenceError in browsers
 
 var GESTURES = ["fist", "palm", "thumbsUp", "peace", "point"];
 
@@ -167,7 +167,7 @@ function switchPlayer(state) {
     return newState;
 }
 
-if (typeof module !== "undefined" && module.exports) {
+if (typeof module === "object" && module.exports) {
     module.exports = {
         createGame: createGame,
         generateSequence: generateSequence,
