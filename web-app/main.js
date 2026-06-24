@@ -25,6 +25,8 @@ let playerAttempt = [];
 let phase = "waitingForDifficulty";
 let performTimer = null;
 let countdownInterval = null;
+let playerNames = {1: "Player 1", 2: "Player 2"};
+let gameStarted = false;
 
 // --- SECTION 3: Functions ---
 
@@ -63,11 +65,13 @@ function render() {
     const chip2 = document.getElementById("chip2");
     chip1.style.transform = "translateX(" + (gameState.player1Position * TRACK_STEP) + "px)";
     chip2.style.transform = "translateX(" + (gameState.player2Position * TRACK_STEP) + "px)";
+    document.getElementById("player1-label").textContent = playerNames[1];
+    document.getElementById("player2-label").textContent = playerNames[2];
     const status = document.getElementById("status");
     if (gameState.winner) {
-        status.textContent = "Player " + gameState.winner + " wins!";
+        status.textContent = playerNames[gameState.winner] + " wins!";
     } else {
-        status.textContent = "Player " + gameState.currentPlayer + "'s turn";
+        status.textContent = playerNames[gameState.currentPlayer] + "'s turn";
     }
 }
 
@@ -164,7 +168,7 @@ function judgeAttempt() {
             phase = "gameOver";
             render();
             messageEl.className = "";
-            messageEl.textContent = "Player " + winner + " wins!";
+            messageEl.textContent = playerNames[winner] + " wins!";
         } else {
             endTurn(success);
         }
@@ -205,12 +209,65 @@ function endTurn(success) {
     render();
 }
 
+// Show ready/set/go countdown then start gameplay
+function runCountdown(callback) {
+    const overlay = document.getElementById("countdown-overlay");
+    const text = document.getElementById("countdown-text");
+    const steps = ["READY...", "SET...", "GO!"];
+    let i = 0;
+    overlay.classList.add("active");
+
+    function showNext() {
+        if (i >= steps.length) {
+            overlay.classList.remove("active");
+            callback();
+            return;
+        }
+        text.textContent = steps[i];
+        // Restart animation
+        text.style.animation = "none";
+        void text.offsetWidth;  // trigger reflow
+        text.style.animation = "countdown-pop 1s ease-out";
+        i += 1;
+        setTimeout(showNext, 900);
+    }
+    showNext();
+}
+
+// Start the game from the start screen
+function startGame() {
+    const name1 = document.getElementById("name1-input").value.trim();
+    const name2 = document.getElementById("name2-input").value.trim();
+    if (name1) {
+        playerNames[1] = name1;
+    }
+    if (name2) {
+        playerNames[2] = name2;
+    }
+    document.getElementById("start-overlay").classList.remove("active");
+    runCountdown(function () {
+        gameStarted = true;
+        render();
+    });
+}
+
+// Show / hide mid-game rules overlay
+function openRules() {
+    document.getElementById("rules-overlay").classList.add("active");
+    document.getElementById("rules-overlay").setAttribute("aria-hidden", "false");
+}
+
+function closeRules() {
+    document.getElementById("rules-overlay").classList.remove("active");
+    document.getElementById("rules-overlay").setAttribute("aria-hidden", "true");
+}
+
 // --- SECTION 4: Event listeners ---
 
 // Difficulty buttons — only respond when waiting between turns
 document.querySelectorAll(".difficulty-btn").forEach(function (button) {
     button.addEventListener("click", function () {
-        if (phase === "waitingForDifficulty") {
+        if (phase === "waitingForDifficulty" && gameStarted) {
             startTurn(Number(button.dataset.difficulty));
         }
     });
@@ -239,6 +296,22 @@ document.querySelectorAll(".theme-btn").forEach(function (button) {
         button.classList.add("active");
         document.getElementById("theme-label").textContent = "Theme: " + THEME_NAMES[theme];
     });
+});
+
+document.getElementById("start-game-btn").addEventListener("click", startGame);
+document.getElementById("open-rules-btn").addEventListener("click", openRules);
+document.getElementById("close-rules-btn").addEventListener("click", closeRules);
+
+// Allow Enter key to submit player names / start game
+document.getElementById("name1-input").addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+        startGame();
+    }
+});
+document.getElementById("name2-input").addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+        startGame();
+    }
 });
 
 // Draw the initial board state with mystery squares marked

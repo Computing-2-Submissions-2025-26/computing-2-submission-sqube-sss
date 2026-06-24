@@ -10,6 +10,61 @@
 </head>
 <body class="theme-f1">
 
+  <div id="start-overlay" class="overlay active" aria-modal="true" role="dialog" aria-labelledby="start-title">
+    <div class="overlay-card">
+      <h1 id="start-title">MEMORY SPRINT</h1>
+      <p class="overlay-tagline">A two-player gesture-memory race</p>
+
+      <section class="rules-section">
+        <h2>How to play</h2>
+        <ol class="rules-list">
+          <li>Take turns. On your turn, pick a difficulty (1-5).</li>
+          <li>A sequence of hand-gestures will flash on screen — memorise it.</li>
+          <li>When "GO!" appears, perform the sequence using keys Q W E R T.</li>
+          <li>Match the sequence correctly to move forward by your chosen difficulty (e.g. difficulty 3 = move 3 squares).</li>
+          <li>Watch out for <strong>❓ mystery squares</strong> — they're either bonuses or setbacks!</li>
+          <li>First to the finish line wins!</li>
+        </ol>
+      </section>
+
+      <section class="name-section">
+        <div class="name-input-group">
+          <label for="name1-input">Player 1 name</label>
+          <input id="name1-input" type="text" maxlength="10" placeholder="Player 1" autocomplete="off">
+        </div>
+        <div class="name-input-group">
+          <label for="name2-input">Player 2 name</label>
+          <input id="name2-input" type="text" maxlength="10" placeholder="Player 2" autocomplete="off">
+        </div>
+      </section>
+
+      <button id="start-game-btn" class="big-action-btn">START GAME</button>
+    </div>
+  </div>
+
+  <div id="countdown-overlay" class="overlay" aria-hidden="true">
+    <div id="countdown-text" class="countdown-text"></div>
+  </div>
+
+  <div id="rules-button-container">
+    <button id="open-rules-btn" aria-label="Open rules">? Rules</button>
+  </div>
+
+  <div id="rules-overlay" class="overlay" aria-modal="true" role="dialog" aria-labelledby="rules-overlay-title" aria-hidden="true">
+    <div class="overlay-card">
+      <h2 id="rules-overlay-title">How to play</h2>
+      <ol class="rules-list">
+        <li>Take turns. On your turn, pick a difficulty (1-5).</li>
+        <li>A sequence of hand-gestures will flash on screen — memorise it.</li>
+        <li>When "GO!" appears, perform the sequence using keys Q W E R T.</li>
+        <li>Match the sequence correctly to move forward by your chosen difficulty (e.g. difficulty 3 = move 3 squares).</li>
+        <li>Watch out for <strong>❓ mystery squares</strong> — they're either bonuses or setbacks!</li>
+        <li>First to the finish line wins!</li>
+      </ol>
+      <button id="close-rules-btn" class="big-action-btn">GOT IT</button>
+    </div>
+  </div>
+
   <div id="theme-picker">
     <p class="theme-picker-heading">Pick your theme</p>
     <div>
@@ -34,7 +89,7 @@
       <span class="start-header">START</span>
     </div>
     <div class="track-row">
-      <span class="player-label">Player 1</span>
+      <span class="player-label" id="player1-label">Player 1</span>
       <div id="track1">
         <span class="start-pad" aria-label="Player 1 start"></span>
         <span class="square" data-position="1"></span>
@@ -52,7 +107,7 @@
       </div>
     </div>
     <div class="track-row">
-      <span class="player-label">Player 2</span>
+      <span class="player-label" id="player2-label">Player 2</span>
       <div id="track2">
         <span class="start-pad" aria-label="Player 2 start"></span>
         <span class="square" data-position="1"></span>
