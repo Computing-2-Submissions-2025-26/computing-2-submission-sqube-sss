@@ -1,9 +1,11 @@
 {
   "name": "computing-2-submission",
-  "type": "module",
   "version": "1.0.0",
   "description": "",
-  "main": "web-app/Module.js",
+  "main": "web-app/game.js",
+  "scripts": {
+    "test": "mocha web-app/tests/"
+  },
   "author": "",
   "license": "ISC",
   "dependencies": {
@@ -11,6 +13,6 @@
   },
   "devDependencies": {
     "docdash": "^2.0.2",
-    "mocha": "^11.7.5"
+    "mocha": "^11.7.6"
   }
 }
