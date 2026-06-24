@@ -4,6 +4,8 @@
   <meta charset="utf-8">
   <title>Memory Sprint</title>
   <link rel="stylesheet" href="default.css">
+  <script src="https://cdn.jsdelivr.net/npm/ramda@0.29.0/dist/ramda.min.js" defer></script>
+  <script src="game.js" defer></script>
   <script src="main.js" defer></script>
 </head>
 <body>
@@ -16,31 +18,45 @@
 
   <!-- player tracks with 10 squares each -->
   <section id="tracks">
-    <div id="track1">
-      <span class="square" data-position="1"></span>
-      <span class="square" data-position="2"></span>
-      <span class="square" data-position="3"></span>
-      <span class="square" data-position="4"></span>
-      <span class="square" data-position="5"></span>
-      <span class="square" data-position="6"></span>
-      <span class="square" data-position="7"></span>
-      <span class="square" data-position="8"></span>
-      <span class="square" data-position="9"></span>
-      <span class="square" data-position="10"></span>
-      <span id="chip1">P1</span>
+    <div class="start-label-row">
+      <span class="player-label" aria-hidden="true"></span>
+      <span class="start-header">START</span>
     </div>
-    <div id="track2">
-      <span class="square" data-position="1"></span>
-      <span class="square" data-position="2"></span>
-      <span class="square" data-position="3"></span>
-      <span class="square" data-position="4"></span>
-      <span class="square" data-position="5"></span>
-      <span class="square" data-position="6"></span>
-      <span class="square" data-position="7"></span>
-      <span class="square" data-position="8"></span>
-      <span class="square" data-position="9"></span>
-      <span class="square" data-position="10"></span>
-      <span id="chip2">P2</span>
+    <div class="track-row">
+      <span class="player-label">Player 1</span>
+      <div id="track1">
+        <span class="start-pad" aria-label="Player 1 start"></span>
+        <span class="square" data-position="1"></span>
+        <span class="square" data-position="2"></span>
+        <span class="square" data-position="3"></span>
+        <span class="square" data-position="4"></span>
+        <span class="square" data-position="5"></span>
+        <span class="square" data-position="6"></span>
+        <span class="square" data-position="7"></span>
+        <span class="square" data-position="8"></span>
+        <span class="square" data-position="9"></span>
+        <span class="square" data-position="10"></span>
+        <span class="finish-line" aria-label="Finish line"></span>
+        <span id="chip1"></span>
+      </div>
+    </div>
+    <div class="track-row">
+      <span class="player-label">Player 2</span>
+      <div id="track2">
+        <span class="start-pad" aria-label="Player 2 start"></span>
+        <span class="square" data-position="1"></span>
+        <span class="square" data-position="2"></span>
+        <span class="square" data-position="3"></span>
+        <span class="square" data-position="4"></span>
+        <span class="square" data-position="5"></span>
+        <span class="square" data-position="6"></span>
+        <span class="square" data-position="7"></span>
+        <span class="square" data-position="8"></span>
+        <span class="square" data-position="9"></span>
+        <span class="square" data-position="10"></span>
+        <span class="finish-line" aria-label="Finish line"></span>
+        <span id="chip2"></span>
+      </div>
     </div>
   </section>
 
@@ -54,6 +70,9 @@
     <button class="difficulty-btn" data-difficulty="5">5</button>
   </section>
 
+  <!-- countdown timer for memorise and perform phases -->
+  <div id="timer-display" aria-live="polite"></div>
+
   <!-- shows the gesture sequence to memorise -->
   <div id="sequence-display"></div>
 
@@ -62,7 +81,13 @@
 
   <!-- key legend so players know which key is which gesture -->
   <footer>
-    <p>Q=✊ &nbsp; W=🖐 &nbsp; E=👍 &nbsp; R=✌ &nbsp; T=👆</p>
+    <p class="key-legend">
+      Q=<span class="legend-emoji">✊</span> &nbsp;
+      W=<span class="legend-emoji">🖐️</span> &nbsp;
+      E=<span class="legend-emoji">👍</span> &nbsp;
+      R=<span class="legend-emoji">✌️</span> &nbsp;
+      T=<span class="legend-emoji">👆</span>
+    </p>
   </footer>
 
 </body>

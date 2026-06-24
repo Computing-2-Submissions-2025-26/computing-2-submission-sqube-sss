@@ -1,0 +1,423 @@
+/* ==========================================================================
+   MEMORY SPRINT — MAIN STYLESHEET
+   Default theme: F1 Racing
+   ========================================================================== */
+
+
+/* ==========================================================================
+   SECTION 1 — ROOT VARIABLES (F1 theme)
+   ========================================================================== */
+
+:root {
+    --bg-main:        #1a1a1a;
+    --bg-track:       #2a2a2a;
+    --color-text:     #ffffff;
+    --color-accent:   #e10600;
+    --color-success:  #00d26a;
+    --color-warning:  #ffcc00;
+    --square-normal:  #3a3a3a;
+    --square-reward:  #00d26a;
+    --square-setback: #e10600;
+    --square-border:  #555555;
+    --chip1-emoji:    "🏎️";
+    --chip2-emoji:    "🏁";
+    --font-game:      "Verdana", sans-serif;
+    --square-size:    70px;
+}
+
+
+/* ==========================================================================
+   SECTION 2 — GLOBAL RESETS AND BODY
+   ========================================================================== */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-main);
+    color:            var(--color-text);
+    font-family:      var(--font-game);
+    font-size:        16px;
+    line-height:      1.5;
+    padding:          24px 16px;
+    min-height:       100vh;
+
+    display:          flex;
+    flex-direction:   column;
+    align-items:      center;
+    gap:              20px;
+}
+
+
+/* ==========================================================================
+   SECTION 3 — HEADINGS AND STATUS
+   ========================================================================== */
+
+h1 {
+    font-size:      2.4rem;
+    font-weight:    700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color:          var(--color-text);
+    text-align:     center;
+}
+
+h1 span {
+    color: var(--color-accent);
+}
+
+#status {
+    font-size:     1.4rem;
+    font-weight:   600;
+    padding:       12px 28px;
+    border-left:   5px solid var(--color-accent);
+    background:    var(--bg-track);
+    border-radius: 4px;
+    text-align:    center;
+    min-width:     260px;
+}
+
+
+/* ==========================================================================
+   SECTION 4 — TRACKS
+   ========================================================================== */
+
+.start-label-row {
+    display:       flex;
+    align-items:   center;
+    gap:           16px;
+    margin-bottom: 4px;
+}
+
+.start-header {
+    width:          var(--square-size);
+    text-align:     center;
+    font-weight:    700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size:      0.85rem;
+    color:          var(--color-warning);
+}
+
+.track-row {
+    display:     flex;
+    align-items: center;
+    gap:         16px;
+}
+
+.player-label {
+    font-size:       1.2rem;
+    font-weight:     700;
+    min-width:       90px;
+    color:           var(--color-text);
+    display:         flex;
+    align-items:     center;
+    justify-content: flex-start;
+}
+
+#track1 {
+    margin-bottom: 24px;
+}
+
+#track1,
+#track2 {
+    position:         relative;   /* required for absolute chip positioning */
+    display:          flex;
+    flex-direction:   row;
+    flex-wrap:        nowrap;
+    gap:              4px;
+    padding:          8px;
+    background:       var(--bg-track);
+    border-radius:    6px;
+    align-items:      center;
+}
+
+.start-pad {
+    width:            var(--square-size);
+    height:           var(--square-size);
+    flex-shrink:      0;
+    background-color: var(--color-warning);
+    border:           2px dashed #a08000;
+    border-radius:    4px;
+    margin-right:     8px;
+
+    display:          flex;
+    align-items:      center;
+    justify-content:  center;
+}
+
+.square {
+    width:            var(--square-size);
+    height:           var(--square-size);
+    flex-shrink:      0;
+    border:           2px solid var(--square-border);
+    background-color: var(--square-normal);
+    border-radius:    4px;
+
+    display:          flex;
+    align-items:      center;
+    justify-content:  center;
+
+    position:         relative;
+    font-size:        0.65rem;
+    font-weight:      600;
+    color:            rgba(255, 255, 255, 0.55);
+}
+
+/* Position number via ::after pseudo-element on data-position attribute */
+.square::after {
+    content:  attr(data-position);
+    position: absolute;
+    bottom:   3px;
+    right:    5px;
+    font-size: 0.6rem;
+    color:    rgba(255, 255, 255, 0.45);
+    pointer-events: none;
+}
+
+/* --- Setback squares (positions 3 and 8) --- */
+.square[data-position="3"],
+.square[data-position="8"] {
+    background-color: var(--square-setback);
+    border-color:     #ff4444;
+}
+
+/* Accessibility: small icon so colour isn't the only indicator */
+.square[data-position="3"]::before,
+.square[data-position="8"]::before {
+    content:   "⚠";
+    font-size: 1rem;
+    position:  absolute;
+    top:       50%;
+    left:      50%;
+    transform: translate(-50%, -50%);
+    color:     rgba(255, 255, 255, 0.9);
+    pointer-events: none;
+}
+
+/* --- Reward square (position 5) --- */
+.square[data-position="5"] {
+    background-color: var(--square-reward);
+    border-color:     #00ff88;
+}
+
+.square[data-position="5"]::before {
+    content:   "★";
+    font-size: 1rem;
+    position:  absolute;
+    top:       50%;
+    left:      50%;
+    transform: translate(-50%, -50%);
+    color:     rgba(0, 0, 0, 0.7);
+    pointer-events: none;
+}
+
+
+.finish-line {
+    width:       20px;
+    height:      var(--square-size);
+    flex-shrink: 0;
+    margin-left: 8px;
+    background:  repeating-linear-gradient(
+        45deg,
+        #ffffff,
+        #ffffff 6px,
+        #000000 6px,
+        #000000 12px
+    );
+    border-radius: 4px;
+    position:      relative;
+}
+
+.finish-line::after {
+    content:   "🏁";
+    position:  absolute;
+    top:       -28px;
+    left:      50%;
+    transform: translateX(-50%);
+    font-size: 1.2rem;
+}
+
+
+/* ==========================================================================
+   SECTION 5 — CHIPS
+   ========================================================================== */
+
+#chip1,
+#chip2 {
+    width:            var(--square-size);
+    height:           var(--square-size);
+    position:         absolute;
+    top:              8px;   /* matches track padding */
+    left:             8px;
+    z-index:          10;
+
+    display:          flex;
+    align-items:      center;
+    justify-content:  center;
+
+    border-radius:    4px;
+    pointer-events:   none;
+
+    transform:        translateX(0);
+    transition:       transform 0.4s ease;
+}
+
+#chip1::before {
+    content:   var(--chip1-emoji);
+    font-size: 2.2rem;
+    line-height: 1;
+}
+
+#chip2::before {
+    content:   var(--chip2-emoji);
+    font-size: 2.2rem;
+    line-height: 1;
+}
+
+/* Hide the raw text inside the chip spans — emoji comes from ::before */
+#chip1 span,
+#chip2 span {
+    font-size: 0;
+}
+
+
+/* ==========================================================================
+   SECTION 6 — DIFFICULTY BUTTONS
+   ========================================================================== */
+
+.difficulty-btn {
+    display:          inline-block;
+    padding:          14px 28px;
+    font-family:      var(--font-game);
+    font-size:        1rem;
+    font-weight:      700;
+    text-transform:   uppercase;
+    letter-spacing:   0.06em;
+    color:            #ffffff;
+    background-color: var(--color-accent);
+    border:           none;
+    border-radius:    6px;
+    cursor:           pointer;
+
+    transition:       transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+    box-shadow:       0 3px 8px rgba(0, 0, 0, 0.5);
+}
+
+.difficulty-btn:hover {
+    transform:   translateY(-3px);
+    box-shadow:  0 6px 16px rgba(225, 6, 0, 0.45);
+    background-color: #ff2010;
+}
+
+.difficulty-btn:active {
+    transform:  translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* Visible focus ring for keyboard accessibility */
+.difficulty-btn:focus-visible {
+    outline:        3px solid var(--color-warning);
+    outline-offset: 3px;
+}
+
+
+/* ==========================================================================
+   SECTION 7 — SEQUENCE DISPLAY AND MESSAGES
+   ========================================================================== */
+
+#timer-display {
+    font-size:      1.4rem;
+    font-weight:    700;
+    color:          var(--color-warning);
+    text-align:     center;
+    min-height:     1.8em;
+    letter-spacing: 0.08em;
+}
+
+#timer-display.urgent {
+    color:     var(--color-accent);
+    animation: pulse 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes pulse {
+    from { transform: scale(1); }
+    to   { transform: scale(1.1); }
+}
+
+#sequence-display {
+    font-size:      4rem;
+    font-weight:    700;
+    letter-spacing: 0.12em;
+    color:          var(--color-text);
+    background:     var(--bg-track);
+    padding:        16px 32px;
+    border-radius:  6px;
+    min-height:     80px;
+    text-align:     center;
+    min-width:      200px;
+
+    /* high-contrast border keeps it distinct from the background */
+    border:         2px solid var(--square-border);
+}
+
+#message {
+    font-size:   1.3rem;
+    font-weight: 600;
+    color:       var(--color-accent);
+    text-align:  center;
+    min-height:  1.8em;
+}
+
+/* Success / warning state overrides applied via JS class */
+#message.success {
+    color: var(--color-success);
+}
+
+#message.warning {
+    color: var(--color-warning);
+}
+
+
+/* ==========================================================================
+   SECTION 8 — KEY LEGEND (FOOTER)
+   ========================================================================== */
+
+.key-legend {
+    font-size:      1.4rem;
+    font-weight:    600;
+    letter-spacing: 0.05em;
+}
+
+.legend-emoji {
+    font-size:      2rem;
+    vertical-align: middle;
+}
+
+footer,
+#key-legend {
+    font-size:   0.95rem;
+    color:       rgba(255, 255, 255, 0.7);
+    text-align:  center;
+    line-height: 2;
+    margin-top:  8px;
+}
+
+footer kbd,
+#key-legend kbd {
+    display:          inline-block;
+    padding:          2px 8px;
+    font-family:      var(--font-game);
+    font-size:        0.85rem;
+    font-weight:      700;
+    color:            var(--bg-main);
+    background:       var(--color-warning);
+    border-radius:    4px;
+    margin:           0 4px;
+    box-shadow:       0 2px 0 rgba(0, 0, 0, 0.4);
+}

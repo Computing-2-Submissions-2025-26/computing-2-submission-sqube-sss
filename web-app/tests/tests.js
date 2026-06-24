@@ -9,9 +9,9 @@ describe("calculateMove", function () {
         assert.strictEqual(game.calculateMove(5, true), 5);
     });
 
-    it("returns 1 when success is false", function () {
-        assert.strictEqual(game.calculateMove(3, false), 1);
-        assert.strictEqual(game.calculateMove(5, false), 1);
+    it("returns 0 when success is false", function () {
+        assert.strictEqual(game.calculateMove(3, false), 0);
+        assert.strictEqual(game.calculateMove(5, false), 0);
     });
 });
 

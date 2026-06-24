@@ -1,12 +1,12 @@
 /*jslint node: true */
-var R = require("ramda");
+var R = (typeof require !== "undefined") ? require("ramda") : window.R;
 
 var GESTURES = ["fist", "palm", "thumbsUp", "peace", "point"];
 
 var SPECIAL_SQUARES = {
     3: -2,
     5: 2,
-    7: -3
+    8: -4
 };
 
 /**
@@ -68,7 +68,7 @@ function calculateMove(difficulty, success) {
     if (success) {
         return difficulty;
     }
-    return 1;
+    return 0;
 }
 
 /**
@@ -167,15 +167,30 @@ function switchPlayer(state) {
     return newState;
 }
 
-module.exports = {
-    createGame: createGame,
-    generateSequence: generateSequence,
-    checkSequence: checkSequence,
-    calculateMove: calculateMove,
-    movePlayer: movePlayer,
-    applySpecialSquare: applySpecialSquare,
-    checkWinner: checkWinner,
-    getPosition: getPosition,
-    getCurrentPlayer: getCurrentPlayer,
-    switchPlayer: switchPlayer
-};
+if (typeof module !== "undefined" && module.exports) {
+    module.exports = {
+        createGame: createGame,
+        generateSequence: generateSequence,
+        checkSequence: checkSequence,
+        calculateMove: calculateMove,
+        movePlayer: movePlayer,
+        applySpecialSquare: applySpecialSquare,
+        checkWinner: checkWinner,
+        getPosition: getPosition,
+        getCurrentPlayer: getCurrentPlayer,
+        switchPlayer: switchPlayer
+    };
+} else {
+    window.game = {
+        createGame: createGame,
+        generateSequence: generateSequence,
+        checkSequence: checkSequence,
+        calculateMove: calculateMove,
+        movePlayer: movePlayer,
+        applySpecialSquare: applySpecialSquare,
+        checkWinner: checkWinner,
+        getPosition: getPosition,
+        getCurrentPlayer: getCurrentPlayer,
+        switchPlayer: switchPlayer
+    };
+}
