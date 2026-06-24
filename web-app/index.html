@@ -8,7 +8,18 @@
   <script src="game.js" defer></script>
   <script src="main.js" defer></script>
 </head>
-<body>
+<body class="theme-f1">
+
+  <div id="theme-picker">
+    <p class="theme-picker-heading">Pick your theme</p>
+    <div>
+      <button class="theme-btn active" data-theme="f1" aria-label="F1 Racing theme" title="F1 Racing">🏎️</button>
+      <button class="theme-btn" data-theme="jungle" aria-label="Jungle Safari theme" title="Jungle Safari">🐒</button>
+      <button class="theme-btn" data-theme="ocean" aria-label="Ocean Voyage theme" title="Ocean Voyage">🐬</button>
+      <button class="theme-btn" data-theme="music" aria-label="Music Studio theme" title="Music Studio">🎸</button>
+    </div>
+    <p id="theme-label">Theme: F1 Racing</p>
+  </div>
 
   <!-- main heading -->
   <h1>Memory Sprint</h1>

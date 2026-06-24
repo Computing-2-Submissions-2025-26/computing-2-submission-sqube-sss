@@ -3,17 +3,52 @@ var R = (typeof require !== "undefined") ? require("ramda") : window.R; // JSLin
 
 var GESTURES = ["fist", "palm", "thumbsUp", "peace", "point"];
 
-var SPECIAL_SQUARES = {
-    3: -2,
-    5: 2,
-    8: -4
-};
+/**
+ * Generates 3 random special squares at distinct positions between 1 and 9.
+ * Each square has a positive (reward, +1 to +3) or negative (setback, -1 to -4)
+ * effect. Destinations are capped to [0, 9] and no destination may equal another
+ * special square's position; effects are re-rolled until that constraint is met.
+ * @returns {object} A map of position → signed effect, e.g. {3: -2, 5: 2, 8: -3}.
+ */
+function generateSpecialSquares() {
+    "use strict";
+    var positions, specials, i, pos, effect, destination, valid;
+
+    positions = [];
+    while (positions.length < 3) {
+        pos = Math.floor(Math.random() * 9) + 1;
+        if (positions.indexOf(pos) === -1) {
+            positions.push(pos);
+        }
+    }
+
+    specials = {};
+    i = 0;
+    while (i < 3) {
+        valid = false;
+        while (!valid) {
+            if (Math.random() < 0.5) {
+                effect = Math.floor(Math.random() * 3) + 1;
+            } else {
+                effect = -(Math.floor(Math.random() * 4) + 1);
+            }
+            destination = Math.min(9, Math.max(0, positions[i] + effect));
+            effect = destination - positions[i];
+            valid = !R.includes(destination, R.without([positions[i]], positions));
+        }
+        specials[positions[i]] = effect;
+        i += 1;
+    }
+
+    return specials;
+}
 
 /**
- * Creates the initial game state for a two-player Lego brick-stacking race.
+ * Creates the initial game state for a two-player Memory Sprint race.
  * Both players start at position 0, Player 1 goes first, and there is no winner.
- * @returns {object} The initial game state with positions for both players,
- *     the current player's turn. No winner to start with.
+ * Special squares are randomly generated each game.
+ * @returns {object} The initial game state with positions, turn, winner,
+ *     specialSquares map, and an empty revealedSquares array.
  */
 function createGame() {
     "use strict";
@@ -21,7 +56,9 @@ function createGame() {
         player1Position: 0,
         player2Position: 0,
         currentPlayer: 1,
-        winner: null
+        winner: null,
+        specialSquares: generateSpecialSquares(),
+        revealedSquares: []
     };
 }
 
@@ -46,8 +83,7 @@ function generateSequence(difficulty) {
  * the target sequence, both in content and order.
  * @param {Array} target - The correct sequence of gestures the player must match.
  * @param {Array} attempt - The sequence of gestures the player actually entered.
- * @returns {boolean} true if every element of attempt matches the corresponding
- *     element of target and both arrays have the same length; false otherwise.
+ * @returns {boolean} true if every element matches and both arrays are the same length.
  */
 function checkSequence(target, attempt) {
     "use strict";
@@ -55,13 +91,11 @@ function checkSequence(target, attempt) {
 }
 
 /**
- * Calculates how many spaces a player moves based on the challenge difficulty
- * and whether they successfully completed the gesture sequence.
- * A successful attempt moves the player forward by the difficulty value;
- * a failed attempt moves them forward by 1 regardless of difficulty.
- * @param {number} difficulty - The difficulty level (1–5) of the challenge just attempted.
- * @param {boolean} success - true if the player matched the sequence, false otherwise.
- * @returns {number} The number of spaces the player should move forward.
+ * Calculates how many spaces a player moves based on difficulty and success.
+ * A successful attempt moves forward by the difficulty value; failure moves 0.
+ * @param {number} difficulty - The difficulty level (1–5).
+ * @param {boolean} success - true if the player matched the sequence.
+ * @returns {number} The number of spaces to move forward.
  */
 function calculateMove(difficulty, success) {
     "use strict";
@@ -74,10 +108,9 @@ function calculateMove(difficulty, success) {
 /**
  * Moves a specified player forward by a given number of spaces and returns
  * the updated game state. The original state is not changed.
- * @param {object} state - The current game state containing both players' positions
- *     and other game information.
- * @param {number} player - The player number (1 or 2) whose position should be updated.
- * @param {number} spaces - The number of spaces to move the player forward.
+ * @param {object} state - The current game state.
+ * @param {number} player - The player number (1 or 2).
+ * @param {number} spaces - The number of spaces to move (may be negative).
  * @returns {object} A new game state object reflecting the player's updated position.
  */
 function movePlayer(state, player, spaces) {
@@ -92,9 +125,9 @@ function movePlayer(state, player, spaces) {
 
 /**
  * Retrieves the current board position of a specified player.
- * @param {object} state - The current game state containing both players' positions.
- * @param {number} player - The player number (1 or 2) whose position is requested.
- * @returns {number} The board position (square number) of the specified player.
+ * @param {object} state - The current game state.
+ * @param {number} player - The player number (1 or 2).
+ * @returns {number} The board position of the specified player.
  */
 function getPosition(state, player) {
     "use strict";
@@ -106,31 +139,53 @@ function getPosition(state, player) {
 
 /**
  * Applies any special square effect at the current position of the given player.
- * Special squares may send players forward or back, skip turns, or do nothing.
+ * Reads the effect from state.specialSquares. If a special is found, the player
+ * is moved by that effect and the position is added to state.revealedSquares.
  * The original state is not changed.
- * @param {object} state - The current game state containing both players' positions
- *     and any other relevant game information.
- * @param {number} player - The player number (1 or 2) who has just landed on a square.
- * @returns {object} A new game state object after applying the special square's effect,
- *     or the unchanged state if the square is a normal one.
+ * @param {object} state - The current game state.
+ * @param {number} player - The player number (1 or 2).
+ * @returns {object} A new game state after applying the effect, or the unchanged
+ *     state if no special square is at this position.
  */
 function applySpecialSquare(state, player) {
     "use strict";
-    var position, effect;
+    var position, effect, newState;
     position = getPosition(state, player);
-    effect = SPECIAL_SQUARES[position];
+    effect = state.specialSquares[position];
     if (effect === undefined) {
         return state;
     }
-    return movePlayer(state, player, effect);
+    newState = movePlayer(state, player, effect);
+    newState = R.assoc("revealedSquares", R.append(position, state.revealedSquares), newState);
+    return newState;
 }
 
 /**
- * Determines whether either player has reached or passed the final square
- * and therefore won the game.
- * @param {object} state - The current game state containing both players' positions.
- * @returns {number|null} 1 if Player 1 has won, 2 if Player 2 has won,
- *     or null if neither player has won yet.
+ * Returns true if the given position has already been revealed this game.
+ * @param {object} state - The current game state.
+ * @param {number} position - The board position to check.
+ * @returns {boolean} true if the position is in state.revealedSquares.
+ */
+function isSquareRevealed(state, position) {
+    "use strict";
+    return R.includes(position, state.revealedSquares);
+}
+
+/**
+ * Returns the special effect at the given position, or undefined if none exists.
+ * @param {object} state - The current game state.
+ * @param {number} position - The board position to query.
+ * @returns {number|undefined} The signed effect value, or undefined.
+ */
+function getSpecialEffect(state, position) {
+    "use strict";
+    return state.specialSquares[position];
+}
+
+/**
+ * Determines whether either player has reached or passed the final square.
+ * @param {object} state - The current game state.
+ * @returns {number|null} 1 if Player 1 has won, 2 if Player 2 has won, else null.
  */
 function checkWinner(state) {
     "use strict";
@@ -145,8 +200,8 @@ function checkWinner(state) {
 
 /**
  * Returns the player number whose turn it currently is.
- * @param {object} state - The current game state, which tracks whose turn it is.
- * @returns {number} 1 if it is Player 1's turn, or 2 if it is Player 2's turn.
+ * @param {object} state - The current game state.
+ * @returns {number} 1 or 2.
  */
 function getCurrentPlayer(state) {
     "use strict";
@@ -155,8 +210,8 @@ function getCurrentPlayer(state) {
 
 /**
  * Switches the current player from 1 to 2 or from 2 to 1.
- * @param {object} state - The current game state, which tracks whose turn it is.
- * @returns {object} A new game state object with currentPlayer set to the other player.
+ * @param {object} state - The current game state.
+ * @returns {object} A new game state with currentPlayer set to the other player.
  */
 function switchPlayer(state) {
     "use strict";
@@ -178,7 +233,10 @@ if (typeof module === "object" && module.exports) {
         checkWinner: checkWinner,
         getPosition: getPosition,
         getCurrentPlayer: getCurrentPlayer,
-        switchPlayer: switchPlayer
+        switchPlayer: switchPlayer,
+        generateSpecialSquares: generateSpecialSquares,
+        isSquareRevealed: isSquareRevealed,
+        getSpecialEffect: getSpecialEffect
     };
 } else {
     window.game = {
@@ -191,6 +249,9 @@ if (typeof module === "object" && module.exports) {
         checkWinner: checkWinner,
         getPosition: getPosition,
         getCurrentPlayer: getCurrentPlayer,
-        switchPlayer: switchPlayer
+        switchPlayer: switchPlayer,
+        generateSpecialSquares: generateSpecialSquares,
+        isSquareRevealed: isSquareRevealed,
+        getSpecialEffect: getSpecialEffect
     };
 }

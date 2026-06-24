@@ -71,6 +71,38 @@ function render() {
     }
 }
 
+// Apply mystery/revealed classes to every square based on current game state
+function updateSquareClasses() {
+    document.querySelectorAll(".square").forEach(function (sq) {
+        const pos = Number(sq.dataset.position);
+        const effect = game.getSpecialEffect(gameState, pos);
+        sq.classList.remove("mystery", "revealed-reward", "revealed-setback");
+        if (effect !== undefined) {
+            if (game.isSquareRevealed(gameState, pos)) {
+                sq.classList.add(effect > 0 ? "revealed-reward" : "revealed-setback");
+            } else {
+                sq.classList.add("mystery");
+            }
+        }
+    });
+}
+
+// Flash a square for 900ms then settle it into its permanent revealed class
+function revealSquare(position, effect, callback) {
+    document.querySelectorAll(".square[data-position='" + position + "']").forEach(function (sq) {
+        sq.classList.remove("mystery");
+        sq.classList.add("revealing");
+    });
+    setTimeout(function () {
+        const permanentClass = effect > 0 ? "revealed-reward" : "revealed-setback";
+        document.querySelectorAll(".square[data-position='" + position + "']").forEach(function (sq) {
+            sq.classList.remove("revealing");
+            sq.classList.add(permanentClass);
+        });
+        callback();
+    }, 900);
+}
+
 // Begin a new turn for the current player at the chosen difficulty
 function startTurn(difficulty) {
     currentDifficulty = difficulty;
@@ -142,20 +174,22 @@ function judgeAttempt() {
     render();
 
     const landedAt = game.getPosition(gameState, gameState.currentPlayer);
+    const landedEffect = game.getSpecialEffect(gameState, landedAt);
 
-    if ([3, 5, 8].indexOf(landedAt) !== -1) {
-        if (landedAt === 5) {
+    if (landedEffect !== undefined) {
+        if (landedEffect > 0) {
             messageEl.className = "success";
             messageEl.textContent = "Bonus! Jump ahead!";
         } else {
             messageEl.className = "warning";
             messageEl.textContent = "Oh no! Setback square!";
         }
-        setTimeout(function () {
+        revealSquare(landedAt, landedEffect, function () {
             gameState = game.applySpecialSquare(gameState, gameState.currentPlayer);
+            updateSquareClasses();
             render();
             setTimeout(finaliseJudge, 600);
-        }, 1500);
+        });
     } else {
         finaliseJudge();
     }
@@ -187,5 +221,26 @@ document.addEventListener("keydown", function (event) {
     handleKeypress(event.key.toLowerCase());
 });
 
-// Draw the initial board state
+// Theme picker
+const THEME_NAMES = {
+    "f1": "F1 Racing",
+    "jungle": "Jungle Safari",
+    "ocean": "Ocean Voyage",
+    "music": "Music Studio"
+};
+
+document.querySelectorAll(".theme-btn").forEach(function (button) {
+    button.addEventListener("click", function () {
+        const theme = button.dataset.theme;
+        document.body.className = "theme-" + theme;
+        document.querySelectorAll(".theme-btn").forEach(function (b) {
+            b.classList.remove("active");
+        });
+        button.classList.add("active");
+        document.getElementById("theme-label").textContent = "Theme: " + THEME_NAMES[theme];
+    });
+});
+
+// Draw the initial board state with mystery squares marked
+updateSquareClasses();
 render();

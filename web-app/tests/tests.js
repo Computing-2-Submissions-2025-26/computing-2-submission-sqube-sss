@@ -45,6 +45,14 @@ describe("createGame", function () {
     it("returns an object with winner of null", function () {
         assert.strictEqual(game.createGame().winner, null);
     });
+
+    it("returns an object with a specialSquares property containing exactly 3 entries", function () {
+        assert.strictEqual(Object.keys(game.createGame().specialSquares).length, 3);
+    });
+
+    it("returns an object with an empty revealedSquares array", function () {
+        assert.deepStrictEqual(game.createGame().revealedSquares, []);
+    });
 });
 
 describe("getPosition", function () {
@@ -114,5 +122,161 @@ describe("switchPlayer", function () {
     it("switches currentPlayer from 2 to 1", function () {
         var state = {player1Position: 0, player2Position: 0, currentPlayer: 2, winner: null};
         assert.strictEqual(game.switchPlayer(state).currentPlayer, 1);
+    });
+});
+
+describe("generateSpecialSquares", function () {
+    it("returns exactly 3 special squares", function () {
+        var specials = game.generateSpecialSquares();
+        assert.strictEqual(Object.keys(specials).length, 3);
+    });
+
+    it("places all specials at positions between 1 and 9 inclusive", function () {
+        var specials = game.generateSpecialSquares();
+        Object.keys(specials).forEach(function (key) {
+            var pos = Number(key);
+            assert.ok(pos >= 1 && pos <= 9, "position " + pos + " out of range 1–9");
+        });
+    });
+
+    it("ensures no destination collides with another special square's position", function () {
+        var specials = game.generateSpecialSquares();
+        var positions = Object.keys(specials).map(Number);
+        positions.forEach(function (pos) {
+            var destination = pos + specials[pos];
+            positions.forEach(function (other) {
+                if (other !== pos) {
+                    assert.notStrictEqual(
+                        destination,
+                        other,
+                        "destination " + destination + " from pos " + pos + " collides with special at " + other
+                    );
+                }
+            });
+        });
+    });
+
+    it("caps all destinations to minimum 0 and maximum 9", function () {
+        var specials = game.generateSpecialSquares();
+        Object.keys(specials).forEach(function (key) {
+            var pos = Number(key);
+            var destination = pos + specials[key];
+            assert.ok(
+                destination >= 0 && destination <= 9,
+                "destination " + destination + " out of range 0–9"
+            );
+        });
+    });
+});
+
+describe("applySpecialSquare", function () {
+    it("moves the player by the special effect when one exists", function () {
+        var state = {
+            player1Position: 5,
+            player2Position: 0,
+            currentPlayer: 1,
+            winner: null,
+            specialSquares: {5: 2},
+            revealedSquares: []
+        };
+        var newState = game.applySpecialSquare(state, 1);
+        assert.strictEqual(newState.player1Position, 7);
+    });
+
+    it("moves player 2 by a setback effect", function () {
+        var state = {
+            player1Position: 0,
+            player2Position: 3,
+            currentPlayer: 2,
+            winner: null,
+            specialSquares: {3: -2},
+            revealedSquares: []
+        };
+        var newState = game.applySpecialSquare(state, 2);
+        assert.strictEqual(newState.player2Position, 1);
+    });
+
+    it("adds the landed position to revealedSquares", function () {
+        var state = {
+            player1Position: 5,
+            player2Position: 0,
+            currentPlayer: 1,
+            winner: null,
+            specialSquares: {5: 2},
+            revealedSquares: []
+        };
+        var newState = game.applySpecialSquare(state, 1);
+        assert.ok(newState.revealedSquares.indexOf(5) !== -1);
+    });
+
+    it("appends to an already-populated revealedSquares", function () {
+        var state = {
+            player1Position: 5,
+            player2Position: 0,
+            currentPlayer: 1,
+            winner: null,
+            specialSquares: {5: 2},
+            revealedSquares: [3]
+        };
+        var newState = game.applySpecialSquare(state, 1);
+        assert.ok(newState.revealedSquares.indexOf(3) !== -1);
+        assert.ok(newState.revealedSquares.indexOf(5) !== -1);
+    });
+
+    it("returns the state unchanged when no special at the current position", function () {
+        var state = {
+            player1Position: 4,
+            player2Position: 0,
+            currentPlayer: 1,
+            winner: null,
+            specialSquares: {5: 2},
+            revealedSquares: []
+        };
+        var newState = game.applySpecialSquare(state, 1);
+        assert.strictEqual(newState, state);
+    });
+
+    it("does not modify the original state", function () {
+        var state = {
+            player1Position: 5,
+            player2Position: 0,
+            currentPlayer: 1,
+            winner: null,
+            specialSquares: {5: 2},
+            revealedSquares: []
+        };
+        game.applySpecialSquare(state, 1);
+        assert.strictEqual(state.player1Position, 5);
+        assert.deepStrictEqual(state.revealedSquares, []);
+    });
+});
+
+describe("isSquareRevealed", function () {
+    it("returns false when revealedSquares is empty", function () {
+        var state = {revealedSquares: [], specialSquares: {}};
+        assert.strictEqual(game.isSquareRevealed(state, 5), false);
+    });
+
+    it("returns true when the position is in revealedSquares", function () {
+        var state = {revealedSquares: [3, 5], specialSquares: {}};
+        assert.strictEqual(game.isSquareRevealed(state, 5), true);
+    });
+
+    it("returns false when the position is not in revealedSquares", function () {
+        var state = {revealedSquares: [3, 5], specialSquares: {}};
+        assert.strictEqual(game.isSquareRevealed(state, 8), false);
+    });
+});
+
+describe("getSpecialEffect", function () {
+    it("returns the effect at a known special position", function () {
+        var state = {specialSquares: {5: 2, 3: -2}, revealedSquares: []};
+        assert.strictEqual(game.getSpecialEffect(state, 5), 2);
+        assert.strictEqual(game.getSpecialEffect(state, 3), -2);
+    });
+
+    it("returns undefined for a non-special position", function () {
+        var state = {specialSquares: {5: 2}, revealedSquares: []};
+        assert.strictEqual(game.getSpecialEffect(state, 7), undefined);
     });
 });

@@ -20,7 +20,9 @@
     --square-setback: #e10600;
     --square-border:  #555555;
     --chip1-emoji:    "🏎️";
-    --chip2-emoji:    "🏁";
+    --chip2-emoji:    "🏎️";
+    --setback-icon:   "⚠";
+    --reward-icon:    "★";
     --font-game:      "Verdana", sans-serif;
     --square-size:    70px;
 }
@@ -180,41 +182,105 @@ h1 span {
     pointer-events: none;
 }
 
-/* --- Setback squares (positions 3 and 8) --- */
-.square[data-position="3"],
-.square[data-position="8"] {
-    background-color: var(--square-setback);
-    border-color:     #ff4444;
+/* --- Mystery squares: special position not yet revealed --- */
+.square.mystery {
+    background-color: var(--square-normal);
+    border-color:     var(--square-border);
 }
 
-/* Accessibility: small icon so colour isn't the only indicator */
-.square[data-position="3"]::before,
-.square[data-position="8"]::before {
-    content:   "⚠";
-    font-size: 1rem;
-    position:  absolute;
-    top:       50%;
-    left:      50%;
-    transform: translate(-50%, -50%);
-    color:     rgba(255, 255, 255, 0.9);
+.square.mystery::before {
+    content:        "?";
+    font-size:      1.6rem;
+    font-weight:    700;
+    color:          rgba(255, 255, 255, 0.7);
+    position:       absolute;
+    top:            50%;
+    left:           50%;
+    transform:      translate(-50%, -50%);
     pointer-events: none;
 }
 
-/* --- Reward square (position 5) --- */
-.square[data-position="5"] {
+/* --- Revealed reward squares --- */
+.square.revealed-reward {
     background-color: var(--square-reward);
-    border-color:     #00ff88;
+    border-color:     var(--color-success);
 }
 
-.square[data-position="5"]::before {
-    content:   "★";
-    font-size: 1rem;
-    position:  absolute;
-    top:       50%;
-    left:      50%;
-    transform: translate(-50%, -50%);
-    color:     rgba(0, 0, 0, 0.7);
+.square.revealed-reward::before {
+    content:        var(--reward-icon);
+    font-size:      1.5rem;
+    position:       absolute;
+    top:            50%;
+    left:           50%;
+    transform:      translate(-50%, -50%);
     pointer-events: none;
+}
+
+/* Badge overrides the position-number ::after on revealed squares */
+.square.revealed-reward::after {
+    content:         "+";
+    position:        absolute;
+    top:             3px;
+    right:           5px;
+    font-size:       0.85rem;
+    font-weight:     700;
+    color:           rgba(0, 0, 0, 0.85);
+    background:      rgba(255, 255, 255, 0.85);
+    border-radius:   50%;
+    width:           18px;
+    height:          18px;
+    display:         flex;
+    align-items:     center;
+    justify-content: center;
+    pointer-events:  none;
+}
+
+/* --- Revealed setback squares --- */
+.square.revealed-setback {
+    background-color: var(--square-setback);
+    border-color:     var(--color-warning);
+}
+
+.square.revealed-setback::before {
+    content:        var(--setback-icon);
+    font-size:      1.5rem;
+    position:       absolute;
+    top:            50%;
+    left:           50%;
+    transform:      translate(-50%, -50%);
+    pointer-events: none;
+}
+
+.square.revealed-setback::after {
+    content:         "−";
+    position:        absolute;
+    top:             3px;
+    right:           5px;
+    font-size:       0.85rem;
+    font-weight:     700;
+    color:           rgba(255, 255, 255, 0.95);
+    background:      rgba(0, 0, 0, 0.6);
+    border-radius:   50%;
+    width:           18px;
+    height:          18px;
+    display:         flex;
+    align-items:     center;
+    justify-content: center;
+    pointer-events:  none;
+}
+
+/* --- Reveal animation (JS adds .revealing for ~900ms, then swaps to permanent class) --- */
+@keyframes reveal-flash {
+    0%   { transform: scale(1);    filter: brightness(1); }
+    25%  { transform: scale(1.12); filter: brightness(1.6); }
+    50%  { transform: scale(1);    filter: brightness(0.8); }
+    75%  { transform: scale(1.08); filter: brightness(1.4); }
+    100% { transform: scale(1);    filter: brightness(1); }
+}
+
+.square.revealing {
+    animation: reveal-flash 0.9s ease-in-out;
+    z-index:   5;
 }
 
 
@@ -280,6 +346,11 @@ h1 span {
     line-height: 1;
 }
 
+/* Tint chip2 blue in F1 theme so both cars are visually distinct */
+body.theme-f1 #chip2::before {
+    filter: hue-rotate(180deg) saturate(1.4);
+}
+
 /* Hide the raw text inside the chip spans — emoji comes from ::before */
 #chip1 span,
 #chip2 span {
@@ -324,6 +395,10 @@ h1 span {
 .difficulty-btn:focus-visible {
     outline:        3px solid var(--color-warning);
     outline-offset: 3px;
+}
+
+#difficulty-area p {
+    margin-bottom: 14px;
 }
 
 
@@ -420,4 +495,128 @@ footer kbd,
     border-radius:    4px;
     margin:           0 4px;
     box-shadow:       0 2px 0 rgba(0, 0, 0, 0.4);
+}
+
+
+/* ==========================================================================
+   SECTION 9 — THEME PICKER
+   ========================================================================== */
+
+#theme-picker {
+    position:       fixed;
+    top:            24px;
+    right:          16px;
+    display:        flex;
+    flex-direction: column;
+    align-items:    flex-end;
+    gap:            8px;
+    z-index:        100;
+}
+
+#theme-picker > div {
+    display: flex;
+    gap:     8px;
+}
+
+.theme-btn {
+    width:           44px;
+    height:          44px;
+    border-radius:   50%;
+    border:          2px solid var(--square-border);
+    background:      var(--bg-track);
+    font-size:       1.4rem;
+    cursor:          pointer;
+    display:         flex;
+    align-items:     center;
+    justify-content: center;
+    transition:      transform 0.15s ease, border-color 0.15s ease;
+}
+
+.theme-btn:hover {
+    transform: scale(1.1);
+}
+
+.theme-btn.active {
+    border-color: var(--color-accent);
+    box-shadow:   0 0 12px var(--color-accent);
+}
+
+.theme-btn:focus-visible {
+    outline:        3px solid var(--color-warning);
+    outline-offset: 3px;
+}
+
+.theme-picker-heading {
+    font-size:       0.85rem;
+    font-weight:     600;
+    color:           var(--color-text);
+    text-transform:  uppercase;
+    letter-spacing:  0.08em;
+    opacity:         0.85;
+    margin-bottom:   2px;
+    align-self:      flex-start;
+}
+
+#theme-label {
+    font-size:  0.85rem;
+    color:      var(--color-text);
+    opacity:    0.75;
+    font-style: italic;
+    align-self: flex-start;
+}
+
+
+/* ==========================================================================
+   SECTION 10 — THEME OVERRIDES
+   ========================================================================== */
+
+/* JUNGLE THEME */
+body.theme-jungle {
+    --bg-main:        #163a1e;
+    --bg-track:       #3d2818;
+    --color-accent:   #ffd166;
+    --color-success:  #c8e890;
+    --color-warning:  #ff7e3d;
+    --square-normal:  #8b6543;
+    --square-reward:  #4a7c2a;
+    --square-setback: #c84c2f;
+    --square-border:  #b8956a;
+    --chip1-emoji:    "🐒";
+    --chip2-emoji:    "🦧";
+    --setback-icon:   "🍃";
+    --reward-icon:    "🍌";
+}
+
+/* OCEAN THEME */
+body.theme-ocean {
+    --bg-main:        #0a2540;
+    --bg-track:       #1e4866;
+    --color-accent:   #00d4ff;
+    --color-success:  #4ade80;
+    --color-warning:  #ffa726;
+    --square-normal:  #2e6390;
+    --square-reward:  #4ade80;
+    --square-setback: #ef5350;
+    --square-border:  #4a7ba6;
+    --chip1-emoji:    "🐬";
+    --chip2-emoji:    "🐠";
+    --setback-icon:   "🌊";
+    --reward-icon:    "🐚";
+}
+
+/* MUSIC THEME */
+body.theme-music {
+    --bg-main:        #2d1b3d;
+    --bg-track:       #4a2c5a;
+    --color-accent:   #ffd700;
+    --color-success:  #b388ff;
+    --color-warning:  #ff6ec7;
+    --square-normal:  #5d3a6e;
+    --square-reward:  #b388ff;
+    --square-setback: #ff4081;
+    --square-border:  #7b5990;
+    --chip1-emoji:    "🎸";
+    --chip2-emoji:    "🎹";
+    --setback-icon:   "🎵";
+    --reward-icon:    "⭐";
 }
