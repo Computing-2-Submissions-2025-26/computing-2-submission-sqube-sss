@@ -1,6 +1,13 @@
-/*jslint node*/
+/*jslint node: true */
+var R = require("ramda");
 
 var GESTURES = ["fist", "palm", "thumbsUp", "peace", "point"];
+
+var SPECIAL_SQUARES = {
+    3: -2,
+    5: 2,
+    7: -3
+};
 
 /**
  * Creates the initial game state for a two-player Lego brick-stacking race.
@@ -9,6 +16,7 @@ var GESTURES = ["fist", "palm", "thumbsUp", "peace", "point"];
  *     the current player's turn. No winner to start with.
  */
 function createGame() {
+    "use strict";
     return {
         player1Position: 0,
         player2Position: 0,
@@ -27,12 +35,10 @@ function createGame() {
  *     each element randomly chosen from the fixed gesture pool.
  */
 function generateSequence(difficulty) {
-    var sequence = [];
-    var i;
-    for (i = 0; i < difficulty; i += 1) {
-        sequence.push(GESTURES[Math.floor(Math.random() * GESTURES.length)]);
-    }
-    return sequence;
+    "use strict";
+    return R.range(0, difficulty).map(function () {
+        return GESTURES[Math.floor(Math.random() * GESTURES.length)];
+    });
 }
 
 /**
@@ -44,6 +50,7 @@ function generateSequence(difficulty) {
  *     element of target and both arrays have the same length; false otherwise.
  */
 function checkSequence(target, attempt) {
+    "use strict";
     return target.join(",") === attempt.join(",");
 }
 
@@ -57,6 +64,7 @@ function checkSequence(target, attempt) {
  * @returns {number} The number of spaces the player should move forward.
  */
 function calculateMove(difficulty, success) {
+    "use strict";
     if (success) {
         return difficulty;
     }
@@ -73,13 +81,27 @@ function calculateMove(difficulty, success) {
  * @returns {object} A new game state object reflecting the player's updated position.
  */
 function movePlayer(state, player, spaces) {
-    var newState = Object.assign({}, state);
+    "use strict";
+    var field, newPosition;
+    field = (player === 1)
+        ? "player1Position"
+        : "player2Position";
+    newPosition = Math.max(0, state[field] + spaces);
+    return R.assoc(field, newPosition, state);
+}
+
+/**
+ * Retrieves the current board position of a specified player.
+ * @param {object} state - The current game state containing both players' positions.
+ * @param {number} player - The player number (1 or 2) whose position is requested.
+ * @returns {number} The board position (square number) of the specified player.
+ */
+function getPosition(state, player) {
+    "use strict";
     if (player === 1) {
-        newState.player1Position = Math.max(0, newState.player1Position + spaces);
-    } else {
-        newState.player2Position = Math.max(0, newState.player2Position + spaces);
+        return state.player1Position;
     }
-    return newState;
+    return state.player2Position;
 }
 
 /**
@@ -93,17 +115,14 @@ function movePlayer(state, player, spaces) {
  *     or the unchanged state if the square is a normal one.
  */
 function applySpecialSquare(state, player) {
-    var position = getPosition(state, player);
-    if (position === 3) {
-        return movePlayer(state, player, -2);
+    "use strict";
+    var position, effect;
+    position = getPosition(state, player);
+    effect = SPECIAL_SQUARES[position];
+    if (effect === undefined) {
+        return state;
     }
-    if (position === 5) {
-        return movePlayer(state, player, 2);
-    }
-    if (position === 7) {
-        return movePlayer(state, player, -3);
-    }
-    return state;
+    return movePlayer(state, player, effect);
 }
 
 /**
@@ -114,6 +133,7 @@ function applySpecialSquare(state, player) {
  *     or null if neither player has won yet.
  */
 function checkWinner(state) {
+    "use strict";
     if (state.player1Position >= 10) {
         return 1;
     }
@@ -124,24 +144,12 @@ function checkWinner(state) {
 }
 
 /**
- * Retrieves the current board position of a specified player.
- * @param {object} state - The current game state containing both players' positions.
- * @param {number} player - The player number (1 or 2) whose position is requested.
- * @returns {number} The board position (square number) of the specified player.
- */
-function getPosition(state, player) {
-    if (player === 1) {
-        return state.player1Position;
-    }
-    return state.player2Position;
-}
-
-/**
  * Returns the player number whose turn it currently is.
  * @param {object} state - The current game state, which tracks whose turn it is.
  * @returns {number} 1 if it is Player 1's turn, or 2 if it is Player 2's turn.
  */
 function getCurrentPlayer(state) {
+    "use strict";
     return state.currentPlayer;
 }
 
@@ -151,6 +159,7 @@ function getCurrentPlayer(state) {
  * @returns {object} A new game state object with currentPlayer set to the other player.
  */
 function switchPlayer(state) {
+    "use strict";
     var newState = Object.assign({}, state);
     newState.currentPlayer = (state.currentPlayer === 1)
         ? 2
@@ -159,14 +168,14 @@ function switchPlayer(state) {
 }
 
 module.exports = {
-    createGame,
-    generateSequence,
-    checkSequence,
-    calculateMove,
-    movePlayer,
-    applySpecialSquare,
-    checkWinner,
-    getPosition,
-    getCurrentPlayer,
-    switchPlayer
+    createGame: createGame,
+    generateSequence: generateSequence,
+    checkSequence: checkSequence,
+    calculateMove: calculateMove,
+    movePlayer: movePlayer,
+    applySpecialSquare: applySpecialSquare,
+    checkWinner: checkWinner,
+    getPosition: getPosition,
+    getCurrentPlayer: getCurrentPlayer,
+    switchPlayer: switchPlayer
 };

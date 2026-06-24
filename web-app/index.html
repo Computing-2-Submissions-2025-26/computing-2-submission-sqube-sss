@@ -1,9 +1,69 @@
-<!-- In HTML Comments are written like this -->
-<!-- They can all be removed for your apps -->
-<!doctype html> <!-- This first line tells browsers to expect modern standard html 5 -->
-<html lang="en-gb"> <!-- This is indicates the page is written in British English, useful for accessibility -->
-<meta charset="utf-8"> <!-- This indicates how the file is encoded. utf-8 is standard -->
-<title>Your Web-app Title</title> <!-- All pages need a title, this will be displayed in the browser's title bar -->
-<link rel="stylesheet" href="default.css"> <!-- Import style sheet – default.css -->
-<link rel="icon" href="./assets/favicon.png"> <!-- Import 'Favorites Icon' – favicon.png -->
-<script type="module" src="main.js"></script> <!-- Load the main script. Must be type="module". Have only one of these -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Memory Sprint</title>
+  <link rel="stylesheet" href="default.css">
+  <script src="main.js" defer></script>
+</head>
+<body>
+
+  <!-- main heading -->
+  <h1>Memory Sprint</h1>
+
+  <!-- shows whose turn it is -->
+  <p id="status">Player 1's turn</p>
+
+  <!-- player tracks with 10 squares each -->
+  <section id="tracks">
+    <div id="track1">
+      <span class="square" data-position="1"></span>
+      <span class="square" data-position="2"></span>
+      <span class="square" data-position="3"></span>
+      <span class="square" data-position="4"></span>
+      <span class="square" data-position="5"></span>
+      <span class="square" data-position="6"></span>
+      <span class="square" data-position="7"></span>
+      <span class="square" data-position="8"></span>
+      <span class="square" data-position="9"></span>
+      <span class="square" data-position="10"></span>
+      <span id="chip1">P1</span>
+    </div>
+    <div id="track2">
+      <span class="square" data-position="1"></span>
+      <span class="square" data-position="2"></span>
+      <span class="square" data-position="3"></span>
+      <span class="square" data-position="4"></span>
+      <span class="square" data-position="5"></span>
+      <span class="square" data-position="6"></span>
+      <span class="square" data-position="7"></span>
+      <span class="square" data-position="8"></span>
+      <span class="square" data-position="9"></span>
+      <span class="square" data-position="10"></span>
+      <span id="chip2">P2</span>
+    </div>
+  </section>
+
+  <!-- difficulty picker -->
+  <section id="difficulty-area">
+    <p>Choose difficulty (1-5):</p>
+    <button class="difficulty-btn" data-difficulty="1">1</button>
+    <button class="difficulty-btn" data-difficulty="2">2</button>
+    <button class="difficulty-btn" data-difficulty="3">3</button>
+    <button class="difficulty-btn" data-difficulty="4">4</button>
+    <button class="difficulty-btn" data-difficulty="5">5</button>
+  </section>
+
+  <!-- shows the gesture sequence to memorise -->
+  <div id="sequence-display"></div>
+
+  <!-- feedback messages like Go!, Correct!, winner -->
+  <p id="message"></p>
+
+  <!-- key legend so players know which key is which gesture -->
+  <footer>
+    <p>Q=✊ &nbsp; W=🖐 &nbsp; E=👍 &nbsp; R=✌ &nbsp; T=👆</p>
+  </footer>
+
+</body>
+</html>
