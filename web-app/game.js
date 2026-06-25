@@ -1,13 +1,13 @@
 /*jslint node: true, browser: true, devel: true */
-var R = (typeof require !== "undefined") ? require("ramda") : window.R; // JSLint warns on typeof, but direct `require !== undefined` throws ReferenceError in browsers
+var R = (typeof require !== "undefined") ? require("ramda") : window.R; // JSLint flags this, but it's the safest way to make game.js work in both Node and the browser
 
 var GESTURES = ["fist", "palm", "thumbsUp", "peace", "point"];
 
 /**
  * Generates 3 random special squares at distinct positions between 1 and 9.
- * Each square has a positive (reward, +1 to +3) or negative (setback, -1 to -4)
- * effect. Destinations are capped to [0, 9] and no destination may equal another
- * special square's position; effects are re-rolled until that constraint is met.
+ * Each one has a positive (reward, +1 to +3) or negative (setback, -1 to -4)
+ * effect. Destinations are capped to [0, 9], and no destination is allowed to
+ * land on another special square's position - if it does, the effect is rolled again.
  * @returns {object} A map of position → signed effect, e.g. {3: -2, 5: 2, 8: -3}.
  */
 function generateSpecialSquares() {
@@ -45,8 +45,8 @@ function generateSpecialSquares() {
 
 /**
  * Creates the initial game state for a two-player Memory Sprint race.
- * Both players start at position 0, Player 1 goes first, and there is no winner.
- * Special squares are randomly generated each game.
+ * Both players start at position 0, Player 1 goes first, and there's no winner yet.
+ * The special squares are randomly generated each game.
  * @returns {object} The initial game state with positions, turn, winner,
  *     specialSquares map, and an empty revealedSquares array.
  */
@@ -63,13 +63,12 @@ function createGame() {
 }
 
 /**
- * Generates a random sequence of gestures for a given difficulty level.
- * The gestures are drawn from a fixed pool of exactly 5 distinct gestures.
- * The length of the returned sequence equals the difficulty value.
+ * Generates a random gesture sequence for a given difficulty level.
+ * Gestures are drawn from a fixed pool of 5, and the sequence length matches
+ * the difficulty value. No gesture is allowed to repeat back-to-back.
  * @param {number} difficulty - A number from 1 to 5 representing how many
  *     gestures should be in the sequence.
- * @returns {Array} An array of gesture strings of length equal to difficulty,
- *     each element randomly chosen from the fixed gesture pool.
+ * @returns {Array} An array of gesture strings of length equal to difficulty.
  */
 function generateSequence(difficulty) {
     "use strict";
@@ -91,8 +90,8 @@ function generateSequence(difficulty) {
 }
 
 /**
- * Checks whether a player's attempted gesture sequence exactly matches
- * the target sequence, both in content and order.
+ * Checks whether the player's attempted sequence matches the target exactly,
+ * both in content and order.
  * @param {Array} target - The correct sequence of gestures the player must match.
  * @param {Array} attempt - The sequence of gestures the player actually entered.
  * @returns {boolean} true if every element matches and both arrays are the same length.
@@ -103,8 +102,8 @@ function checkSequence(target, attempt) {
 }
 
 /**
- * Calculates how many spaces a player moves based on difficulty and success.
- * A successful attempt moves forward by the difficulty value; failure moves 0.
+ * Works out how many spaces a player moves based on difficulty and success.
+ * A correct attempt moves forward by the difficulty value, a wrong one moves 0.
  * @param {number} difficulty - The difficulty level (1–5).
  * @param {boolean} success - true if the player matched the sequence.
  * @returns {number} The number of spaces to move forward.
@@ -118,8 +117,8 @@ function calculateMove(difficulty, success) {
 }
 
 /**
- * Moves a specified player forward by a given number of spaces and returns
- * the updated game state. The original state is not changed.
+ * Moves the specified player by a given number of spaces and returns the
+ * updated state. The original state isn't modified.
  * @param {object} state - The current game state.
  * @param {number} player - The player number (1 or 2).
  * @param {number} spaces - The number of spaces to move (may be negative).
@@ -136,7 +135,7 @@ function movePlayer(state, player, spaces) {
 }
 
 /**
- * Retrieves the current board position of a specified player.
+ * Returns the current board position of the specified player.
  * @param {object} state - The current game state.
  * @param {number} player - The player number (1 or 2).
  * @returns {number} The board position of the specified player.
@@ -150,10 +149,9 @@ function getPosition(state, player) {
 }
 
 /**
- * Applies any special square effect at the current position of the given player.
- * Reads the effect from state.specialSquares. If a special is found, the player
- * is moved by that effect and the position is added to state.revealedSquares.
- * The original state is not changed.
+ * Applies the special square effect at the player's current position, if there is one.
+ * Reads the effect from state.specialSquares, moves the player accordingly, and
+ * adds the position to state.revealedSquares. The original state isn't modified.
  * @param {object} state - The current game state.
  * @param {number} player - The player number (1 or 2).
  * @returns {object} A new game state after applying the effect, or the unchanged
@@ -184,7 +182,7 @@ function isSquareRevealed(state, position) {
 }
 
 /**
- * Returns the special effect at the given position, or undefined if none exists.
+ * Returns the effect at the given position, or undefined if there's nothing special there.
  * @param {object} state - The current game state.
  * @param {number} position - The board position to query.
  * @returns {number|undefined} The signed effect value, or undefined.
@@ -195,7 +193,7 @@ function getSpecialEffect(state, position) {
 }
 
 /**
- * Determines whether either player has reached or passed the final square.
+ * Checks whether either player has reached or passed the final square.
  * @param {object} state - The current game state.
  * @returns {number|null} 1 if Player 1 has won, 2 if Player 2 has won, else null.
  */

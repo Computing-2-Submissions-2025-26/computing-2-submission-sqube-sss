@@ -1,2 +1,5 @@
 node_modules
 .directory
+.claude/
+*.log
+.DS_Store

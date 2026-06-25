@@ -187,7 +187,9 @@ h1 span {
     bottom:   3px;
     right:    5px;
     font-size: 0.6rem;
-    color:    rgba(255, 255, 255, 0.45);
+    color:    rgba(255, 255, 255, 0.85);
+    opacity:  1;
+    font-weight: 600;
     pointer-events: none;
 }
 
@@ -638,7 +640,7 @@ body.theme-music {
 .overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.85);
+    background: #0a0a0a;
     backdrop-filter: blur(8px);
     z-index: 1000;
     display: none;
@@ -678,7 +680,7 @@ body.theme-music {
 }
 
 .rules-section {
-    background: rgba(0, 0, 0, 0.25);
+    background: #1a1a1a;
     border-radius: 8px;
     padding: 16px 20px;
     margin-bottom: 20px;
@@ -690,13 +692,14 @@ body.theme-music {
     margin-bottom: 10px;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--color-accent);
+    color: #ffffff;
 }
 
 .rules-list {
     padding-left: 22px;
     line-height: 1.7;
     font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.95);
 }
 
 .rules-list li {
@@ -730,7 +733,7 @@ body.theme-music {
     padding: 10px 14px;
     font-size: 1rem;
     font-family: var(--font-game);
-    background: rgba(0, 0, 0, 0.3);
+    background: #2a2a2a;
     border: 2px solid var(--square-border);
     border-radius: 6px;
     color: var(--color-text);
@@ -1144,7 +1147,7 @@ body.theme-music .winner-card {
     align-items: flex-start;
     gap: 10px;
     padding: 10px 14px;
-    background: rgba(0, 0, 0, 0.3);
+    background: #2a2a2a;
     border: 2px solid var(--square-border);
     border-radius: 6px;
     cursor: pointer;
@@ -1152,7 +1155,7 @@ body.theme-music .winner-card {
 
 .input-mode-option:has(input:checked) {
     border-color: var(--color-accent);
-    background: rgba(0, 0, 0, 0.45);
+    background: #1a1a1a;
 }
 
 .input-mode-option input {
@@ -1161,7 +1164,7 @@ body.theme-music .winner-card {
 
 .input-mode-option small {
     display: block;
-    opacity: 0.65;
+    color: rgba(255, 255, 255, 0.85);
     font-size: 0.78rem;
     margin-top: 2px;
 }
@@ -1200,4 +1203,31 @@ body.theme-music .winner-card {
     width: 0%;
     background: var(--color-accent);
     transition: width 0.1s linear;
+}
+
+.webcam-tips {
+    margin-top: 16px;
+    background: #1a1a1a;
+    border-left: 4px solid var(--color-warning);
+    border-radius: 6px;
+    padding: 12px 16px;
+}
+
+.webcam-tips h3 {
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #ffd980;
+}
+
+.webcam-tips-list {
+    padding-left: 20px;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.webcam-tips-list li {
+    margin-bottom: 4px;
 }
