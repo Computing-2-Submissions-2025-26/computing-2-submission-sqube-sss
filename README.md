@@ -1,4 +1,4 @@
-# Memory Sprint
+# Memory Sprint by Suryansha Sheth (02459444)
 
 A two-player gesture-memory racing game built in JavaScript for the Computing 2: Applications module.
 
