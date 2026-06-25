@@ -1013,3 +1013,191 @@ body.theme-music .winner-card {
     position: relative;
     overflow: visible;
 }
+
+
+/* ==========================================================================
+   SECTION 13 — WEBCAM PANEL
+   ========================================================================== */
+
+.webcam-panel {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 280px;
+    background: var(--bg-track);
+    border: 2px solid var(--color-accent);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    z-index: 80;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    color: var(--color-text);
+    font-family: var(--font-game);
+}
+
+.webcam-panel.hidden {
+    display: none;
+}
+
+.webcam-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.webcam-header h3 {
+    margin: 0;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-accent);
+}
+
+#webcam-toggle-btn {
+    padding: 6px 14px;
+    font-family: var(--font-game);
+    font-size: 0.8rem;
+    font-weight: 700;
+    background: var(--color-accent);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+#webcam-toggle-btn:hover {
+    filter: brightness(1.1);
+}
+
+#webcam-container {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#webcam-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover;
+}
+
+#webcam-status {
+    font-size: 0.85rem;
+    opacity: 0.85;
+    text-align: center;
+    font-style: italic;
+}
+
+.webcam-debug {
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+}
+
+.debug-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 2px 0;
+}
+
+.debug-row span:first-child {
+    opacity: 0.7;
+}
+
+.debug-row span:last-child {
+    font-weight: 700;
+    color: var(--color-accent);
+}
+
+/* Input mode selector inside start screen */
+.input-mode-section {
+    margin-bottom: 24px;
+}
+
+.input-mode-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    opacity: 0.85;
+    margin-bottom: 10px;
+}
+
+.input-mode-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.input-mode-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 2px solid var(--square-border);
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.input-mode-option:has(input:checked) {
+    border-color: var(--color-accent);
+    background: rgba(0, 0, 0, 0.45);
+}
+
+.input-mode-option input {
+    margin-top: 3px;
+}
+
+.input-mode-option small {
+    display: block;
+    opacity: 0.65;
+    font-size: 0.78rem;
+    margin-top: 2px;
+}
+
+.webcam-slot-indicator {
+    text-align: center;
+    margin: 8px auto;
+    width: 320px;
+    color: var(--color-text);
+}
+
+.webcam-slot-indicator.hidden {
+    display: none;
+}
+
+.slot-text {
+    font-size: 1.3rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-accent);
+    margin-bottom: 8px;
+}
+
+.slot-progress-bar {
+    width: 100%;
+    height: 14px;
+    background: var(--bg-track);
+    border: 2px solid var(--square-border);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.slot-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--color-accent);
+    transition: width 0.1s linear;
+}

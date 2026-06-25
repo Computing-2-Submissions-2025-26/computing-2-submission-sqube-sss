@@ -18,13 +18,26 @@ const MEMORISE_TIMES = {
     4: 6800,
     5: 10000
 };
-const PERFORM_TIMES = {
+const PERFORM_TIMES_KEYBOARD = {
     1: 2000,
     2: 4000,
     3: 6000,
     4: 8000,
     5: 10000
 };
+const PERFORM_TIMES_WEBCAM = {
+    1: 4000,
+    2: 7000,
+    3: 10000,
+    4: 13000,
+    5: 16000
+};
+function getPerformTime(difficulty) {
+    if (inputMode === "webcam") {
+        return PERFORM_TIMES_WEBCAM[difficulty];
+    }
+    return PERFORM_TIMES_KEYBOARD[difficulty];
+}
 const SQUARE_SIZE = 70;
 const SQUARE_GAP = 4;
 const TRACK_STEP = SQUARE_SIZE + SQUARE_GAP;
@@ -43,6 +56,23 @@ let gameStats = {
     1: {turns: 0, sequencesNailed: 0},
     2: {turns: 0, sequencesNailed: 0}
 };
+let inputMode = "keyboard";  // "keyboard" or "webcam"
+let webcamModel = null;
+let webcamInstance = null;
+let webcamLoopActive = false;
+const MODEL_PATH = "assets/model/";
+const MODEL_LABEL_TO_GESTURE = {
+    "Thumbs up": "thumbsUp",
+    "Pointing up": "point",
+    "Fist": "fist",
+    "Palm": "palm",
+    "Peace": "peace",
+    "Nothing": "nothing"
+};
+const WEBCAM_CONFIDENCE_THRESHOLD = 0.7;
+const WEBCAM_WINDOW_MS = 3000;
+let webcamVotes = {};
+let webcamWindowStart = 0;
 
 // --- SECTION 3: Functions ---
 
@@ -148,21 +178,30 @@ function showSequence() {
 
 // Show "Go!" and start the timer for the player's performance window
 function beginPerformPhase() {
-    const performTime = PERFORM_TIMES[currentDifficulty];
+    const performTime = getPerformTime(currentDifficulty);
     startCountdown(performTime, "GO");
     document.getElementById("message").textContent = "Go!";
     phase = "performing";
+    if (inputMode === "webcam") {
+        webcamVotes = {};
+        webcamWindowStart = Date.now();
+        const indicator = document.getElementById("webcam-slot-indicator");
+        indicator.classList.remove("hidden");
+        document.getElementById("slot-total").textContent = targetSequence.length;
+        document.getElementById("slot-current").textContent = "1";
+        document.getElementById("slot-progress-fill").style.width = "0%";
+    }
     performTimer = setTimeout(function () {
         judgeAttempt();
     }, performTime);
 }
 
 // Register a gesture keypress during the perform phase
-function handleKeypress(key) {
+function handleKeypress(key, gestureOverride) {
     if (phase !== "performing") {
         return;
     }
-    const gesture = KEY_TO_GESTURE[key];
+    const gesture = gestureOverride || KEY_TO_GESTURE[key];
     if (!gesture) {
         return;
     }
@@ -175,6 +214,7 @@ function handleKeypress(key) {
 
 // Check the attempt, move the chip, and check for a winner
 function judgeAttempt() {
+    document.getElementById("webcam-slot-indicator").classList.add("hidden");
     stopCountdown();
     const playerWhoPlayed = gameState.currentPlayer;
     gameStats[playerWhoPlayed].turns += 1;
@@ -270,6 +310,12 @@ function startGame() {
     if (name2) {
         playerNames[2] = name2;
     }
+    const selectedMode = document.querySelector("input[name='input-mode']:checked").value;
+    inputMode = selectedMode;
+    if (inputMode === "webcam") {
+        document.getElementById("webcam-panel").classList.remove("hidden");
+        loadWebcamModel();
+    }
     document.getElementById("start-overlay").classList.remove("active");
     runCountdown(function () {
         gameStarted = true;
@@ -328,8 +374,150 @@ function showWinnerOverlay(winner) {
     }, 4000);
 }
 
+// --- WEBCAM FUNCTIONS ---
+
+// Load the Teachable Machine model
+async function loadWebcamModel() {
+    const statusEl = document.getElementById("webcam-status");
+    statusEl.textContent = "Loading model...";
+    try {
+        const modelURL = MODEL_PATH + "model.json";
+        const metadataURL = MODEL_PATH + "metadata.json";
+        webcamModel = await tmImage.load(modelURL, metadataURL);
+        statusEl.textContent = "Model loaded. Click 'Turn On' to start.";
+    } catch (err) {
+        statusEl.textContent = "Failed to load model.";
+        console.error("Model load error:", err);
+    }
+}
+
+// Start the webcam and begin classification loop
+async function startWebcam() {
+    const statusEl = document.getElementById("webcam-status");
+    const container = document.getElementById("webcam-container");
+    if (!webcamModel) {
+        statusEl.textContent = "Model not loaded yet.";
+        return;
+    }
+    try {
+        statusEl.textContent = "Starting camera...";
+        const flip = true;
+        webcamInstance = new tmImage.Webcam(220, 220, flip);
+        await webcamInstance.setup();
+        await webcamInstance.play();
+        container.innerHTML = "";
+        container.appendChild(webcamInstance.canvas);
+        webcamLoopActive = true;
+        statusEl.textContent = "Active — watching gestures.";
+        document.getElementById("webcam-toggle-btn").textContent = "Turn Off";
+        webcamLoop();
+    } catch (err) {
+        statusEl.textContent = "Camera access denied or unavailable.";
+        console.error("Webcam start error:", err);
+    }
+}
+
+// Stop the webcam
+function stopWebcam() {
+    if (webcamInstance) {
+        webcamInstance.stop();
+        webcamInstance = null;
+    }
+    webcamLoopActive = false;
+    document.getElementById("webcam-container").innerHTML = "";
+    document.getElementById("webcam-status").textContent = "Stopped.";
+    document.getElementById("webcam-toggle-btn").textContent = "Turn On";
+    document.getElementById("debug-gesture").textContent = "—";
+    document.getElementById("debug-confidence").textContent = "—";
+}
+
+// Run continuously: update camera frame + classify
+async function webcamLoop() {
+    if (!webcamLoopActive || !webcamInstance) {
+        return;
+    }
+    webcamInstance.update();
+    const predictions = await webcamModel.predict(webcamInstance.canvas);
+
+    // Pick the highest-confidence prediction
+    let topPrediction = predictions[0];
+    predictions.forEach(function (p) {
+        if (p.probability > topPrediction.probability) {
+            topPrediction = p;
+        }
+    });
+
+    const rawClass = topPrediction.className;
+    const gesture = MODEL_LABEL_TO_GESTURE[rawClass] || rawClass;
+    const confidence = topPrediction.probability;
+    const now = Date.now();
+
+    document.getElementById("debug-gesture").textContent = gesture;
+    document.getElementById("debug-confidence").textContent = Math.round(confidence * 100) + "%";
+
+    // Only tally votes during the perform phase
+    if (phase === "performing" && webcamWindowStart > 0) {
+        // Add a vote if it's a confident game gesture (not "nothing")
+        if (gesture !== "nothing" && confidence >= WEBCAM_CONFIDENCE_THRESHOLD) {
+            webcamVotes[gesture] = (webcamVotes[gesture] || 0) + 1;
+        }
+
+        // Show current leader in debug
+        let leader = null;
+        let leaderVotes = 0;
+        Object.keys(webcamVotes).forEach(function (g) {
+            if (webcamVotes[g] > leaderVotes) {
+                leader = g;
+                leaderVotes = webcamVotes[g];
+            }
+        });
+        const elapsed = now - webcamWindowStart;
+        const windowProgress = Math.min(100, Math.round((elapsed / WEBCAM_WINDOW_MS) * 100));
+        document.getElementById("debug-gesture").textContent =
+            (leader ? "Leading: " + leader : "...") + " (" + windowProgress + "%)";
+        document.getElementById("slot-progress-fill").style.width = windowProgress + "%";
+
+        // Check if window has expired
+        if (elapsed >= WEBCAM_WINDOW_MS) {
+            if (leader) {
+                handleKeypress(null, leader);
+                document.getElementById("debug-gesture").textContent = "✓ " + leader;
+            } else {
+                // No confident gesture seen — push placeholder so attempt length still advances
+                document.getElementById("debug-gesture").textContent = "✗ no gesture";
+                playerAttempt.push("none");
+                if (playerAttempt.length === targetSequence.length) {
+                    clearTimeout(performTimer);
+                    judgeAttempt();
+                }
+            }
+            // Start next window (if more gestures needed)
+            webcamVotes = {};
+            if (playerAttempt.length < targetSequence.length) {
+                webcamWindowStart = now;
+                document.getElementById("slot-current").textContent = playerAttempt.length + 1;
+                document.getElementById("slot-progress-fill").style.width = "0%";
+            } else {
+                webcamWindowStart = 0;
+            }
+        }
+    }
+
+    requestAnimationFrame(webcamLoop);
+}
+
+// Toggle webcam on/off
+function toggleWebcam() {
+    if (webcamLoopActive) {
+        stopWebcam();
+    } else {
+        startWebcam();
+    }
+}
+
 // Reset all game state and visuals for a new round (keeping player names)
 function resetGame() {
+    document.getElementById("webcam-slot-indicator").classList.add("hidden");
     // Hide winner overlay
     document.getElementById("winner-overlay").classList.remove("active");
     document.getElementById("winner-overlay").setAttribute("aria-hidden", "true");
@@ -343,6 +531,8 @@ function resetGame() {
     playerAttempt = [];
     phase = "waitingForDifficulty";
     performTimer = null;
+    webcamVotes = {};
+    webcamWindowStart = 0;
 
     // Reset stats
     gameStats = {
@@ -424,6 +614,16 @@ document.getElementById("name2-input").addEventListener("keydown", function (e) 
         startGame();
     }
 });
+
+// Listen for input mode change on start screen
+document.querySelectorAll("input[name='input-mode']").forEach(function (radio) {
+    radio.addEventListener("change", function () {
+        inputMode = radio.value;
+    });
+});
+
+// Webcam toggle button
+document.getElementById("webcam-toggle-btn").addEventListener("click", toggleWebcam);
 
 // Draw the initial board state with mystery squares marked
 updateSquareClasses();

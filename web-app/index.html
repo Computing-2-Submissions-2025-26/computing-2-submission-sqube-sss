@@ -6,6 +6,8 @@
   <link rel="stylesheet" href="default.css">
   <script src="https://cdn.jsdelivr.net/npm/ramda@0.29.0/dist/ramda.min.js" defer></script>
   <script src="game.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js" defer></script>
   <script src="main.js" defer></script>
 </head>
 <body class="theme-f1">
@@ -35,6 +37,20 @@
         <div class="name-input-group">
           <label for="name2-input">Player 2 name</label>
           <input id="name2-input" type="text" maxlength="10" placeholder="Player 2" autocomplete="off">
+        </div>
+      </section>
+
+      <section class="input-mode-section">
+        <p class="input-mode-label">Input mode</p>
+        <div class="input-mode-options">
+          <label class="input-mode-option">
+            <input type="radio" name="input-mode" value="keyboard" checked>
+            <span>Keyboard <small>(recommended)</small></span>
+          </label>
+          <label class="input-mode-option">
+            <input type="radio" name="input-mode" value="webcam">
+            <span>Webcam <small>(experimental — works best in similar lighting to training)</small></span>
+          </label>
         </div>
       </section>
 
@@ -169,6 +185,13 @@
   <!-- shows the gesture sequence to memorise -->
   <div id="sequence-display"></div>
 
+  <div id="webcam-slot-indicator" class="webcam-slot-indicator hidden" aria-live="polite">
+    <div class="slot-text">Gesture <span id="slot-current">1</span> of <span id="slot-total">1</span></div>
+    <div class="slot-progress-bar">
+      <div id="slot-progress-fill" class="slot-progress-fill"></div>
+    </div>
+  </div>
+
   <!-- feedback messages like Go!, Correct!, winner -->
   <p id="message"></p>
 
@@ -182,6 +205,20 @@
       T=<span class="legend-emoji">👆</span>
     </p>
   </footer>
+
+
+  <div id="webcam-panel" class="webcam-panel hidden" aria-live="polite">
+    <div class="webcam-header">
+      <h3>Webcam Mode</h3>
+      <button id="webcam-toggle-btn" type="button" aria-label="Toggle webcam mode">Turn On</button>
+    </div>
+    <div id="webcam-container"></div>
+    <div id="webcam-status">Not active</div>
+    <div id="webcam-debug" class="webcam-debug">
+      <div class="debug-row"><span>Detected:</span> <span id="debug-gesture">—</span></div>
+      <div class="debug-row"><span>Confidence:</span> <span id="debug-confidence">—</span></div>
+    </div>
+  </div>
 
 </body>
 </html>
