@@ -1231,3 +1231,16 @@ body.theme-music .winner-card {
 .webcam-tips-list li {
     margin-bottom: 4px;
 }
+
+.page-footer {
+    text-align: center;
+    padding: 24px 16px;
+    margin-top: 40px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.85rem;
+    font-style: italic;
+}
+
+.page-footer p {
+    margin: 0;
+}
